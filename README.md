@@ -27,6 +27,6 @@ Baritone
 Bass
 ```
 
-### Output:
+### Output (each word highlighted individually):
 
-![Prefix tree for specified input](sample.png)
+![Prefix tree for specified input](sample.gif)
