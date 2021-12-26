@@ -1,22 +1,36 @@
-# etrie
+# trie
 toy implementation of a [Trie/Prefix Tree](https://en.wikipedia.org/wiki/Trie)
 
 ## Requirements
 
 - [Steel Bank Common Lisp](http://www.sbcl.org/)
-- [Graphviz](https://graphviz.org/)
 
-## Usage
+## Building Examples
+
+Use the build script `./build-example.sh` to create example binaries with SBCL:
 
 ```console
-$ sbcl --script etrie.lsp        # save etrie to a standalone executable
-$ ./etrie $filename > trie.dot   # using `filename` as a dictionary, create a graph dot file
-$ dot -Tsvg trie.dot -O          # generate an SVG for the created graph dot file
+$ ./build-example.sh examples/graph.lsp  # build the executable `graph` in the repository root.
 ```
 
-## Example Output
+## Examples
 
-### Input (included in sample.txt):
+### Graphviz DOT File (graph.lsp)
+
+#### Additional Requirements
+- Graphviz
+
+Prints a [DOT language](https://graphviz.org/doc/info/lang.html) representation
+of the input dictionary to standard output.
+
+```console
+$ ./build-example.sh examples/graph.lsp  # build `graph` executable
+$ ./graph $filename > trie.dot           # using `filename` as input, save DOT output to 'trie.dot'
+$ dot -Tsvg trie.dot -O                  # create SVG using 'trie.dot' as input
+```
+
+#### Input (included in dict/short.txt):
+
 ```
 Helper
 Helium
@@ -27,6 +41,8 @@ Baritone
 Bass
 ```
 
-### Output (each word highlighted individually):
+#### Output
 
-![Prefix tree for specified input](sample.gif)
+*Individual words highlighted for clarity*
+
+![Prefix tree for specified input](media/short_dictionary.gif)
