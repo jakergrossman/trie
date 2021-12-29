@@ -8,7 +8,7 @@
   (:export :make-trie
            :insert
            :trie-words
-   :search-trie
+           :search-trie
            :prefix
            :suffixes))
 
