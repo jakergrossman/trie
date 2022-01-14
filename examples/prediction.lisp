@@ -2,19 +2,6 @@
 ;;;;
 ;;;; Displays list of predicted words based on user typed word
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (load "trie.lsp")
-  (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
-                                         (user-homedir-pathname))))
-    (cond
-      ((probe-file quicklisp-init)
-       (load quicklisp-init)
-       (ql:quickload :cl-charms :silent t)
-       (ql:quickload :unix-opts :silent t))
-      (t
-       (format *error-output* "[ERROR] Quickload 'setup.lisp' not present in $HOME/quicklisp")
-       (sb-ext:exit)))))
-
 (defpackage :prediction
   (:use :cl)
   (:export :toplevel))
@@ -134,7 +121,6 @@
 
 (defun toplevel ()
   "Run the autocomplete demo"
-  (sb-ext:disable-debugger)
   (let ((options (opts:get-opts)))
     (when (getf options :help)
       (help)

@@ -1,5 +1,6 @@
-;;;; trie.lsp
-;;;; Toy implementation of a trie
+;;;; trie.lisp
+;;;; ~~~~~~~~~
+;;;; Implementation of at trie/prefix trie using CLOS.
 ;;;;
 ;;;; This is free and unencumbered software released into the public domain.
 
@@ -7,7 +8,7 @@
   (:use :cl)
   (:export :make-trie
            :insert
-           :trie-words
+           :words
            :search-trie
            :prefix
            :suffixes))
@@ -24,37 +25,47 @@
     :initform nil
     :accessor suffixes)))
 
-(defun find-trunk (trie trunk)
-  "Finds the trie branch that has the longest-prefix-match with `trunk`"
-  (let* ((char (if (> (length trunk) 0) (char trunk 0)))
-         (next (if char (find char (suffixes trie) :key #'prefix))))
+(defun trunk (trie word)
+  "Finds the longest prefix match in TRIE for WORD
+
+Returns two values:
+The trie node at the tip of the trunk,
+The remainder of the string that could not be matched in TRIE"
+  (let* ((char (and (plusp (length word))
+                    (char word 0)))
+         (next (and char
+                    (find char (suffixes trie) :key #'prefix))))
     (cond
       ((null char)
+       ;; exhausted string
        (values trie nil))
       ((null next)
-       (values trie trunk))
-      (t (find-trunk next (subseq trunk 1))))))
+       ;; string remaining, but end of match
+       (values trie word))
+      (t
+       ;; more match to process
+       (trunk next (subseq word 1))))))
 
-(defun make-suffix (word)
-  "Make the suffix portion of a new word"
-  (if (> (length word) 0)
-      ;; More word to process
-      (make-instance 'trie :prefix (char word 0)
-                           :suffixes (list (make-suffix (subseq word 1))))
+(defun make-suffix (str)
+  "Make a unique trie suffix for STR (a chain of individual trie nodes)"
+  (if (> (length str) 0)
+      ;; More str to process
+      (make-instance 'trie :prefix (char str 0)
+                           :suffixes (list (make-suffix (subseq str 1))))
 
       ;; Signal end of word with null trie node
       (make-instance 'trie)))
 
 (defun insert (trie word)
-  "Insert a new word into a trie"
-  (multiple-value-bind (trunk rest) (find-trunk trie word)
+  "Insert WORD into TRIE"
+  (multiple-value-bind (trunk rest) (trunk trie word)
     (cond
       ((not (null rest))
        (push (make-suffix rest) (suffixes trunk)))))
   trie)
 
-(defun trie-words (trie &optional stack)
-  "Find every word in trie"
+(defun words (trie &optional stack)
+  "Decompose TRIE into a list of words"
   (let ((prefix (slot-value trie 'prefix))
         (suffixes (slot-value trie 'suffixes)))
     (cond
@@ -63,24 +74,24 @@
        (if stack
            (list (coerce (reverse stack) 'string))))
       (t (loop :for suffix :in suffixes
-               :append (trie-words suffix (if prefix
+               :append (words suffix (if prefix
                                               (cons prefix stack)
                                               stack)))))))
 
 (defun search-trie (trie prefix)
-  "Find every word in `trie` that starts with `prefix`"
+  "Return every word in TRIE that begins with PREFIX"
   (if (string= prefix "")
-      (trie-words trie)
-      (multiple-value-bind (trunk rest) (find-trunk trie prefix)
+      (words trie)
+      (multiple-value-bind (trunk rest) (trunk trie prefix)
         (if (null rest)
             (let ((len (1- (length prefix))))
               (mapcar (lambda (x) (concatenate 'string (subseq prefix 0 len) x))
-                      (trie-words trunk)))))))
+                      (words trunk)))))))
 
-(defun make-trie (&optional words)
-  "Create a new trie initialized with `words`"
+(defun make-trie (&key initial-contents)
+  "Create a new trie with INITIAL-CONTENTS"
   (let ((trie (make-instance 'trie)))
-    (loop :for word :in words
+    (loop :for word :in initial-contents
           :do (insert trie word))
     trie))
 

@@ -1,8 +1,4 @@
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (load "trie.lsp"))
-
 (defpackage :graph
-  (:import-from :trie)
   (:use :cl)
   (:export :toplevel))
 
@@ -25,17 +21,16 @@
       (write-out trie 0)
       (format out "}~%"))))
 
-(defun run (words)
-  (dump-dot (trie:make-trie words)))
+(defun run (path)
+  (let ((words (uiop:read-file-lines path)))
+    (dump-dot (trie:make-trie :initial-contents words))))
 
 (defun toplevel ()
-  (sb-ext:disable-debugger)
-  (cond
-    ((< (length sb-ext:*posix-argv*) 2)
-     (print "No dictionary file specified!")
-     (terpri))
-    (t
-     (let* ((words (uiop:read-file-lines (nth 1 sb-ext:*posix-argv*))))
-       (if words
-           (run words)
-           (format t "Could not open dictionary file '~a'~%" (nth 1 sb-ext:*posix-argv*)))))))
+  (let ((path (cond
+                ((< (length sb-ext:*posix-argv*) 2)
+                 (print "No dictionary file passed, using dict/short.txt..." *error-output*)
+                 (print "USAGE: ./graph FILE" *error-output*)
+                 (terpri *error-output*)
+                 #P"dict/short.txt")
+                (t (pathname (nth 1 sb-ext:*posix-argv*))))))
+    (run path)))
